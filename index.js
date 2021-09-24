@@ -11,15 +11,15 @@ function getRequest(res)
             // console.error('error:', error)
             // console.log('body:', body)
             if(body)
-                matchData(body)
+                matchData(body,res)
         })
     }
 
-    function matchData(data)
+    function matchData(data,res)
     {
-        const result = data.match('/homepage\-module')
-        // console.log(result)
-        res.send(result)
+        const result = data.match('(.)')
+         console.log(result.input)
+        res.send(result.input)
     }
 
 
