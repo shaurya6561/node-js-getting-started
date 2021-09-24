@@ -1,32 +1,65 @@
-const cool = require('cool-ascii-faces');
-const express = require('express');
-const path = require('path');
-const PORT = process.env.PORT || 5000;
+const request = require('request');
+const express = require('express')
+const app = express()
+const port = 3100
 
-function getRequest(res)
-    {
-        const request = require('request')
-        request('https://time.com/', function(error, response, body)
-        {
-            // console.error('error:', error)
-            // console.log('body:', body)
-            if(body)
-                matchData(body,res)
+
+function processReponse (response) {
+
+    // console.log("processing");
+
+    const regex = /(homepage-module latest)/i;
+
+    const matches = response.match(regex);
+
+    const sectionStart = matches['index'];
+
+    let sectionContent = response.substring(sectionStart);
+
+    sectionEnd = sectionContent.match(/<\/section>/i);
+
+    sectionContent = sectionContent.substring(0, sectionEnd['index']);
+
+    const titleRegEx = /<a\shref=([^\"]*)>(.*)<\/a>/g;
+
+    const titleMatches = [...sectionContent.matchAll(titleRegEx)];
+
+    const titles = []
+
+    titleMatches.forEach(element => {
+        
+        console.log(element[1])
+        console.log(element[2])
+        console.log("------------------------------------------")
+
+        titles.push({
+            url: element[1],
+            title: element[2],
         })
-    }
 
-    function matchData(data,res)
-    {
-        const result = data.match('(.)')
-         console.log(result.input)
-        res.send(result.input)
-    }
+    });
 
+    console.log(titles);
 
-express()
-  .use(express.static(path.join(__dirname, 'public')))
-  .set('views', path.join(__dirname, 'views'))
-  .set('view engine', 'ejs')
-  .get('/', (req, res) => getRequest(res))
-  .get('/cool', (req, res) => res.send(cool()))
-  .listen(PORT, () => console.log(`Listening on ${ PORT }`));
+    return titles;
+}
+
+app.get('/', (req, res) => {
+
+    request('https://www.time.com', function (error, response, body) {
+
+        // console.error('error:', error); // Print the error if one occurred
+
+        // console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
+
+        // console.log('body:', body); // Print the HTML for the Google homepage.
+
+        res.send(processReponse(body));
+
+    });
+
+})
+
+app.listen(port, () => {
+  console.log(`Example app listening at http://localhost:${port}`)
+})
